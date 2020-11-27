@@ -11,13 +11,13 @@ class ObjectDetector:
     ObjectDetector performs Object detection
     """
     
-    def __init__(self, w_fname, cfg_fname, clss_fname):
+    def __init__(self, w_fname, cfg_fname, clss_fname, GPU=False):
         self.w_fname    = w_fname
         self.cfg_fname  = cfg_fname
         self.clss_fname = clss_fname
         
         # Read model and classes in
-        self.net_     = self.read_model()
+        self.net_     = self.read_model(GPU=GPU)
         self.classes_ = self.read_classes()
         
         # Color for plots
@@ -75,7 +75,12 @@ class ObjectDetector:
         # GPU acceleration
         if GPU:
             print("GPU BACKEND")
-            raise Exception("GPU option has not been tested")
+            try:
+                net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
+                net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
+            except:
+                raise Exception("You need to install opencv CUDA and CUDNN to make it works!!")
+            
         else:
             print("CPU BACKEND")
             net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
@@ -98,8 +103,10 @@ class ObjectDetector:
             outs = self.net_.forward()
         
         elif self.option_ == 'cf':
-            img = imutils.resize(img, width=400)
-            self.net_.setInput(cv2.dnn.blobFromImage(img, 0.007843, (300, 300), 127.5))
+            h, w, _ = img.shape
+            img_ = cv2.resize(img, (int(h * (400./w)),400))
+            # img_ = imutils.resize(img, width=400)
+            self.net_.setInput(cv2.dnn.blobFromImage(img_, 0.007843, (300, 300), 127.5))
             outs = self.net_.forward()
         else:
             raise Exception("Your option is not implemented!", self.option_)
@@ -141,7 +148,7 @@ class ObjectDetector:
             class_ids_ = [class_ids[i[0]] for i in indices]
             confidences_ = [confidences[i[0]] for i in indices]
             boxes_ = [boxes[i[0]] for i in indices]
-    
+
         elif self.option_ == 'cf' or self.option_ == 'tf':
             for i in range(0, outs.shape[2]):
                 class_id = int(outs[0, 0, i, 1])
@@ -149,11 +156,18 @@ class ObjectDetector:
                 if  confidence > score_thres:
                     box = outs[0, 0, i, 3:7]* np.array([Width, Height, Width, Height])
                     startX, startY, endX, endY = box.astype("int")
+
+                    startX = max(0, min(startX, Width - 1))
+                    startY = max(0, min(startY, Height - 1))
+                    endX = max(0, min(endX, Width - 1))
+                    endY = max(0, min(endY, Height - 1))
+
                     w = endX - startX
                     h = endY - startY
                     class_ids_.append(class_id)
                     confidences_.append(float(confidence))
                     boxes_.append([startX, startY, w, h])
+                
         else:
             print("NAH!", self.option_)
         
