@@ -49,6 +49,17 @@ class Localizer:
             y_loc = box[1]+box[3] + offset[1]
             locs.append([x_loc, y_loc])
         return locs
+    def raw_location_abs(self, bboxes, offset=[0,0]):
+        """
+            Extract raw location for a group of classes
+        """
+        locs = []
+        
+        for box in bboxes:
+            x_loc = box[0]+(box[2] - box[0])/2 + offset[0]
+            y_loc = box[3] + offset[1]
+            locs.append([x_loc, y_loc])
+        return locs
 
     def actual_location(self, IDs, scores, locs, cls = None):
         """
