@@ -49,6 +49,7 @@ class Localizer:
             y_loc = box[1]+box[3] + offset[1]
             locs.append([x_loc, y_loc])
         return locs
+
     def raw_location_abs(self, bboxes, offset=[0,0]):
         """
             Extract raw location for a group of classes
@@ -61,7 +62,19 @@ class Localizer:
             locs.append([x_loc, y_loc])
         return locs
 
-    def actual_location(self, IDs, scores, locs, cls = None):
+    def raw_location_abs(self, bboxes, offset=[0,0]):
+        """
+            Extract raw location for a group of classes
+        """
+        locs = []
+        
+        for box in bboxes:
+            x_loc = box[0]+(box[2] - box[0])/2 + offset[0]
+            y_loc = box[3] + offset[1]
+            locs.append([x_loc, y_loc])
+        return locs
+
+    def actual_location(self, IDs, scores, locs, clss = None):
         """
             Convert to actual location in the ground coordinate
         """
@@ -72,10 +85,16 @@ class Localizer:
         for i in range(len(IDs)):
             x, y = locs[i]
             x_, y_ = self.perspective_transform(x,y)
-            if x_ >=np.min(self.xt) and x_< np.max(self.xt) and y_ >=np.min(self.xt) and y_ < np.max(self.yt):
-                loc_abs.append([x_, y_])
-                scores_.append(scores[i])
-                IDs_   .append(IDs[i])
+            if x_ >=np.min(self.xt) and x_< np.max(self.xt) and \
+                y_ >=np.min(self.xt) and y_ < np.max(self.yt):
+                if clss==None:
+                    loc_abs.append([x_, y_])
+                    scores_.append(scores[i])
+                    IDs_   .append(IDs[i])
+                elif IDs_[i] in clss:
+                    loc_abs.append([x_, y_])
+                    scores_.append(scores[i])
+                    IDs_   .append(IDs[i])
         return [IDs, scores_, loc_abs]
         
     def draw_loc(self, img, x, y, radius=10, thickness=2, color=(255, 0, 0) ):
