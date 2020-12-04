@@ -62,28 +62,28 @@ class Localizer:
             locs.append([x_loc, y_loc])
         return locs
 
-    def actual_location(self, IDs, scores, locs, clss = None):
+    def actual_location(self, IDs, scores, locs, clss=None):
         """
             Convert to actual location in the ground coordinate
         """
         loc_abs = []
         scores_ = []
         IDs_ = []
-        
+        print('hum', clss)
         for i in range(len(IDs)):
             x, y = locs[i]
             x_, y_ = self.perspective_transform(x,y)
             if x_ >=np.min(self.xt) and x_< np.max(self.xt) and \
                 y_ >=np.min(self.xt) and y_ < np.max(self.yt):
-                if clss==None:
+                if clss == None:
                     loc_abs.append([x_, y_])
                     scores_.append(scores[i])
                     IDs_   .append(IDs[i])
-                elif IDs_[i] in clss:
+                elif IDs[i] in clss:
                     loc_abs.append([x_, y_])
                     scores_.append(scores[i])
                     IDs_   .append(IDs[i])
-        return [IDs, scores_, loc_abs]
+        return [IDs_, scores_, loc_abs]
         
     def draw_loc(self, img, x, y, radius=10, thickness=2, color=(255, 0, 0) ):
         """
