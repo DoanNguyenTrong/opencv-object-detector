@@ -193,6 +193,7 @@ class ObjectDetector:
         return img
 
     def draw_(self, img, class_ids, confidences, boxes, human=0):
+        
         for i in range(len(class_ids)):
             if class_ids[i] == human:
                 box = boxes[i]
